@@ -28,7 +28,25 @@ app.get('/api/live-score', (req, res) => {
     // CORS Bypass: Use 'curl' on Linux/Mac/Android (Termux) and 'curl.exe' on Windows
     const curlCmd = process.platform === 'win32' ? 'curl.exe' : 'curl';
 
-    const curlCommand = `${curlCmd} -L --max-time 15 --retry 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" "${url}"`;
+    // Robust Desktop Headers to bypass restrictions
+    const headers = [
+        '-H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"',
+        '-H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"',
+        '-H "Accept-Language: en-US,en;q=0.9"',
+        '-H "Cache-Control: max-age=0"',
+        '-H "Sec-Ch-Ua: \\"Not A(Brand\\";v=\\"99\\", \\"Google Chrome\\";v=\\"121\\", \\"Chromium\\";v=\\"121\\""',
+        '-H "Sec-Ch-Ua-Mobile: ?0"',
+        '-H "Sec-Ch-Ua-Platform: \\"Windows\\""',
+        '-H "Sec-Fetch-Dest: document"',
+        '-H "Sec-Fetch-Mode: navigate"',
+        '-H "Sec-Fetch-Site: none"',
+        '-H "Sec-Fetch-User: ?1"',
+        '-H "Upgrade-Insecure-Requests: 1"',
+        // Referer helps
+        `-H "Referer: https://cricclubs.com/${league}"`
+    ].join(' ');
+
+    const curlCommand = `${curlCmd} -L --max-time 15 --retry 3 ${headers} "${url}"`;
 
     exec(curlCommand, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
         if (error) {
@@ -76,7 +94,9 @@ app.get('/api/live-score', (req, res) => {
                 const overs = $(el).find('p').text().trim();
 
                 if (teamName) {
-                    teams.push({ name: teamName, score, overs });
+                    // Clean up extra whitespace (mobile view often has huge gaps)
+                    const cleanName = teamName.replace(/\s+/g, ' ').trim();
+                    teams.push({ name: cleanName, score, overs });
                 }
             });
             data.matchSummary.teams = teams;
@@ -131,12 +151,24 @@ app.get('/api/live-score', (req, res) => {
             });
 
             // --- Extract Recent Balls ---
+            // Desktop: div.bbb-row > div.col2
+            // Mobile: ul.bbb-row > li.col2
             $('.bbb-row').each((i, el) => {
                 if (i < 12) {
-                    const runSpan = $(el).find('.col2 span').first();
+                    // Try desktop selector first, then mobile
+                    let runSpan = $(el).find('.col2 span').first();
+                    // Mobile structure: li.col2 > span.runs
+                    if (runSpan.length === 0) {
+                        runSpan = $(el).find('li.col2 span').first();
+                    }
+
                     let runText = runSpan.text().trim();
-                    const overNum = $(el).find('.ov').text().trim();
-                    const commText = $(el).find('.col3').text().trim();
+
+                    let overNum = $(el).find('.ov').text().trim();
+                    let commText = $(el).find('.col3').text().trim(); // Desktop .col3 is div, Mobile .col3 is li
+                    if (!commText) {
+                        commText = $(el).find('li.col3').text().trim();
+                    }
 
                     if (runText === '' || runSpan.find('.fa-dot-circle-o').length > 0 || runSpan.hasClass('zero')) {
                         runText = '0';
@@ -148,9 +180,13 @@ app.get('/api/live-score', (req, res) => {
                     else if (runText.includes('6')) type = 'six';
                     else if (runText === '0') type = 'dot';
 
-                    data.recentBalls.push({ over: overNum, runs: runText, commentary: commText, type });
+                    if (runText) { // Ensure we found something
+                        data.recentBalls.push({ over: overNum, runs: runText, commentary: commText, type });
+                    }
                 }
             });
+
+            console.log(`Parsed: ${data.matchSummary.teams.length > 0 ? 'Teams OK' : 'No Teams'} | Batsmen: ${data.batsmen.length} | Bowlers: ${data.bowlers.length} | Balls: ${data.recentBalls.length}`);
 
             res.json(data);
         } catch (parseError) {
