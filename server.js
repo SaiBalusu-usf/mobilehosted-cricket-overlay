@@ -154,35 +154,40 @@ app.get('/api/live-score', (req, res) => {
             // Desktop: div.bbb-row > div.col2
             // Mobile: ul.bbb-row > li.col2
             $('.bbb-row').each((i, el) => {
-                if (i < 12) {
-                    // Try desktop selector first, then mobile
-                    let runSpan = $(el).find('.col2 span').first();
-                    // Mobile structure: li.col2 > span.runs
-                    if (runSpan.length === 0) {
-                        runSpan = $(el).find('li.col2 span').first();
-                    }
+                // Stop if we have 12 balls already
+                if (data.recentBalls.length >= 12) return false;
 
-                    let runText = runSpan.text().trim();
+                // Validate this is a ball row (must have .col2 for runs)
+                // Filter out "End of Over" summaries or ads which also use .bbb-row
+                if ($(el).find('.col2').length === 0) return; // Skip this row
 
-                    let overNum = $(el).find('.ov').text().trim();
-                    let commText = $(el).find('.col3').text().trim(); // Desktop .col3 is div, Mobile .col3 is li
-                    if (!commText) {
-                        commText = $(el).find('li.col3').text().trim();
-                    }
+                // Try desktop selector first, then mobile
+                let runSpan = $(el).find('.col2 span').first();
+                // Mobile structure: li.col2 > span.runs
+                if (runSpan.length === 0) {
+                    runSpan = $(el).find('li.col2 span').first();
+                }
 
-                    if (runText === '' || runSpan.find('.fa-dot-circle-o').length > 0 || runSpan.hasClass('zero')) {
-                        runText = '0';
-                    }
+                let runText = runSpan.text().trim();
 
-                    let type = 'normal';
-                    if (runText.includes('W')) type = 'wicket';
-                    else if (runText.includes('4')) type = 'four';
-                    else if (runText.includes('6')) type = 'six';
-                    else if (runText === '0') type = 'dot';
+                let overNum = $(el).find('.ov').text().trim();
+                let commText = $(el).find('.col3').text().trim(); // Desktop .col3 is div, Mobile .col3 is li
+                if (!commText) {
+                    commText = $(el).find('li.col3').text().trim();
+                }
 
-                    if (runText) { // Ensure we found something
-                        data.recentBalls.push({ over: overNum, runs: runText, commentary: commText, type });
-                    }
+                if (runText === '' || runSpan.find('.fa-dot-circle-o').length > 0 || runSpan.hasClass('zero')) {
+                    runText = '0';
+                }
+
+                let type = 'normal';
+                if (runText.includes('W')) type = 'wicket';
+                else if (runText.includes('4')) type = 'four';
+                else if (runText.includes('6')) type = 'six';
+                else if (runText === '0') type = 'dot';
+
+                if (runText) { // Ensure we found something
+                    data.recentBalls.push({ over: overNum, runs: runText, commentary: commText, type });
                 }
             });
 
