@@ -28,7 +28,7 @@ app.get('/api/live-score', (req, res) => {
     // CORS Bypass: Use 'curl' on Linux/Mac/Android (Termux) and 'curl.exe' on Windows
     const curlCmd = process.platform === 'win32' ? 'curl.exe' : 'curl';
 
-    const curlCommand = `${curlCmd} -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" "${url}"`;
+    const curlCommand = `${curlCmd} -L --max-time 15 --retry 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" "${url}"`;
 
     exec(curlCommand, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
         if (error) {

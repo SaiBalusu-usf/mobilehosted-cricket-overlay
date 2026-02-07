@@ -52,27 +52,44 @@ function handleUrlUpdate() {
     }
 }
 
+let consecutiveErrors = 0;
+
 async function fetchScore() {
     try {
-        const url = `${BASE_API_URL}?matchId=${currentConfig.matchId}&clubId=${currentConfig.clubId}`;
+        const url = `${BASE_API_URL}?matchId=${currentConfig.matchId}&clubId=${currentConfig.clubId}&league=${currentConfig.league || 'TCL'}`;
         const response = await fetch(url);
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
         const data = await response.json();
 
-        // Update status if connected
+        // Success - Reset Error Count
+        consecutiveErrors = 0;
+
         const statusMsg = document.getElementById('settingsStatus');
         if (statusMsg) {
-            statusMsg.textContent = "Connected (Local Server)";
+            statusMsg.textContent = "Live (Stable)";
             statusMsg.style.color = "#2ecc71";
         }
 
         updateUI(data);
     } catch (error) {
-        console.error('Error fetching score:', error);
+        console.error('Fetch error:', error);
+        consecutiveErrors++;
+
         const statusMsg = document.getElementById('settingsStatus');
         if (statusMsg) {
-            statusMsg.textContent = "Error: Server not running?";
-            statusMsg.style.color = "#e74c3c";
+            if (consecutiveErrors < 3) {
+                // Transient Error - Warning
+                statusMsg.textContent = "Reconnecting...";
+                statusMsg.style.color = "#f39c12"; // Orange
+            } else {
+                // Persistent Error - Danger
+                statusMsg.textContent = "Connection Lost. Retrying...";
+                statusMsg.style.color = "#e74c3c"; // Red
+            }
         }
+        // Do NOT clear the UI (updateUI is not called), so slightly old data persists.
     }
 }
 
