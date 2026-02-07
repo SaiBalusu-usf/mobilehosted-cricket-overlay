@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Cricket Overlay</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="settings-panel">
+        <div class="settings-toggle">⚙️</div>
+        <div class="settings-content">
+            <h3>Match Settings</h3>
+            <div class="input-group">
+                <label for="matchUrl">CricClubs Match URL</label>
+                <input type="text" id="matchUrl" placeholder="https://cricclubs.com/TCL/viewScorecard.do?matchId=...">
+            </div>
+            <button id="updateMatchBtn">Update Match</button>
+            <p class="status-msg" id="settingsStatus"></p>
+        </div>
+    </div>
+
+    <div class="overlay-container">
+        <!-- League Info -->
+        <div class="league-info" id="leagueInfo" style="display: none;">
+            <img id="leagueLogo" src="" alt="" />
+            <h2 id="leagueName"></h2>
+        </div>
+
+        <!-- Top Bar: Match Summary -->
+        <div class="score-banner" id="scoreBanner">
+            <div class="team-container" id="team1">
+                <div class="team-name">TEAM 1</div>
+                <div class="team-score">0/0 (0.0)</div>
+            </div>
+            <div class="match-info">
+                <div class="status" id="matchStatus">LIVE</div>
+                <div class="projected-score" id="projectedScore"></div>
+                <div class="vs">VS</div>
+            </div>
+            <div class="team-container" id="team2">
+                <div class="team-name">TEAM 2</div>
+                <div class="team-score">0/0 (0.0)</div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar: Detailed Stats (Batsman/Bowler) -->
+        <div class="stats-bar">
+            <!-- Batsmen Table -->
+            <div class="batsmen-panel">
+                <div class="panel-header">BATTING</div>
+                <table id="batsmenTable">
+                    <thead>
+                        <tr>
+                            <th>BATSMAN</th>
+                            <th>R</th>
+                            <th>B</th>
+                            <th>4s</th>
+                            <th>6s</th>
+                            <th>SR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Current Bowler -->
+            <div class="bowler-panel">
+                <div class="panel-header">BOWLING</div>
+                <table id="bowlerTable">
+                    <thead>
+                        <tr>
+                            <th>BOWLER</th>
+                            <th>O</th>
+                            <th>M</th>
+                            <th>R</th>
+                            <th>W</th>
+                            <th>ECO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Balls/Commentary ticker -->
+        <div class="recent-balls-container">
+            <div class="panel-header">LAST 12 BALLS</div>
+            <div class="balls-wrapper" id="recentBalls">
+                <!-- Balls go here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
