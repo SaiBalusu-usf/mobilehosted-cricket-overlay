@@ -198,33 +198,94 @@ td {
     color: #f1c40f;
 }
 
-/* --- Recent Balls Removed --- */
+/* --- Recent Balls --- */
+.recent-balls-container {
+    background: var(--glass-bg);
+    border-radius: 8px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
 
-/* Responsive adjustments for Mobile Streaming */
-/* We want to keep the layout compact (Row-based) even on mobile for overlay use */
+.balls-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.ball {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+}
+
+.ball.four {
+    background: #3498db;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.ball.six {
+    background: #9b59b6;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.ball.wide {
+    background: #e67e22; /* Orange for Wide */
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.ball.wicket {
+    background: #e74c3c;
+    color: #fff;
+    animation: pulse 2s infinite;
+}
+
+.ball.dot {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.ball-over {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 5px;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    }
+
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
+
+/* Responsive adjustments for smaller screens/embeds */
 @media (max-width: 800px) {
-    .overlay-container {
-        width: 98%;
-        /* Use full width */
-        bottom: 10px;
-        /* Lower to bottom */
-    }
-
     .stats-bar {
-        /* Keep row layout to save vertical height */
-        flex-direction: row;
-        gap: 5px;
-        /* Reduce gap */
-    }
-
-    .score-banner {
-        padding: 5px 10px;
-        /* Reduce padding */
-    }
-
-    .team-name {
-        font-size: 1.2rem;
-        /* Slightly smaller */
+        flex-direction: column;
+        height: auto;
     }
 }
 
