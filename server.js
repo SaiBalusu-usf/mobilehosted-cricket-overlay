@@ -153,20 +153,17 @@ app.get('/api/live-score', (req, res) => {
             // --- Extract Recent Balls ---
             // Desktop: div.bbb-row > div.col2
             // Mobile: ul.bbb-row > li.col2
-            $('.bbb-row').each((i, el) => {
+            // Robust Selector: Use [id^='ballid_'] to filter out summaries/ads
+            $('[id^="ballid_"]').each((i, el) => {
                 // Stop if we have 12 balls already
                 if (data.recentBalls.length >= 12) return false;
 
                 // Validate this is a ball row (must have .col2 for runs)
-                // Filter out "End of Over" summaries or ads which also use .bbb-row
                 const col2 = $(el).find('.col2');
                 if (col2.length === 0) return; // Skip this row
 
                 // Filter out hidden rows (like Bowler changes or Start of Over)
-                // Mobile view uses .d-none or .hidden on the LI
                 if (col2.hasClass('d-none') || col2.hasClass('hidden') || $(el).hasClass('d-none')) return;
-
-                // Also check if the LI itself is hidden (common in mobile)
                 if ($(el).find('li.col2').hasClass('d-none')) return;
 
                 // Try desktop selector first, then mobile
