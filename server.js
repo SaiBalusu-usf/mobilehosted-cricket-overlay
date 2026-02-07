@@ -151,10 +151,18 @@ app.get('/api/live-score', (req, res) => {
             });
 
             // --- Extract Recent Balls ---
+            // --- Extract Recent Balls ---
             // Desktop: div.bbb-row > div.col2
             // Mobile: ul.bbb-row > li.col2
             // Robust Selector: Use [id^='ballid_'] to filter out summaries/ads
-            $('[id^="ballid_"]').each((i, el) => {
+            // FIX: Target only the ACTIVE tab (Current Innings)
+            let ballElements = $('.tab-pane.active').find('[id^="ballid_"]');
+            if (ballElements.length === 0) {
+                // Fallback if no active tab found (e.g. mobile view might differ)
+                ballElements = $('[id^="ballid_"]');
+            }
+
+            ballElements.each((i, el) => {
                 // Stop if we have 12 balls already
                 if (data.recentBalls.length >= 12) return false;
 
