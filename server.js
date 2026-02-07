@@ -189,7 +189,14 @@ app.get('/api/live-score', (req, res) => {
                 }
 
                 let type = 'normal';
-                if (runText.includes('W')) type = 'wicket';
+                // Check for Extras first
+                if (runText.toLowerCase().includes('wd')) {
+                    type = 'wide';
+                    // User requested "wd" specifically, ensure lowercase
+                    runText = runText.toLowerCase();
+                }
+                else if (runText.toLowerCase().includes('nb')) type = 'no-ball'; // Potential future support
+                else if (runText.includes('W')) type = 'wicket'; // Strict uppercase W for wicket
                 else if (runText.includes('4')) type = 'four';
                 else if (runText.includes('6')) type = 'six';
                 else if (runText === '0') type = 'dot';

@@ -241,6 +241,12 @@ td {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+.ball.wide {
+    background: #e67e22; /* Orange for Wide */
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 .ball.wicket {
     background: #e74c3c;
     color: #fff;
