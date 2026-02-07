@@ -163,20 +163,7 @@ function updateUI(data) {
         bowlerBody.appendChild(tr);
     });
 
-    // --- Update Recent Balls ---
-    const ballsContainer = document.getElementById('recentBalls');
-    ballsContainer.innerHTML = '';
 
-    const balls = data.recentBalls.slice(0, 10).reverse();
 
-    balls.forEach(ball => {
-        const div = document.createElement('div');
-        div.className = `ball ${ball.type}`;
-        div.textContent = ball.runs;
-        div.title = `Over ${ball.over}: ${ball.commentary}`;
-        ballsContainer.appendChild(div);
-    });
-}
-
-// Start app
-init();
+    // Start app
+    init();
