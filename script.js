@@ -135,14 +135,13 @@ function updateUI(data) {
 
     data.batsmen.forEach(batter => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="batsman-name">${batter.name}</td>
-            <td class="highlight-stat">${batter.runs}</td>
-            <td>${batter.balls}</td>
-            <td>${batter.fours}</td>
-            <td>${batter.sixes}</td>
-            <td>${batter.sr}</td>
-        `;
+        [batter.name, batter.runs, batter.balls, batter.fours, batter.sixes, batter.sr].forEach((value, index) => {
+            const td = document.createElement('td');
+            td.textContent = String(value ?? '');
+            if (index === 0) td.className = 'batsman-name';
+            if (index === 1) td.className = 'highlight-stat';
+            tr.appendChild(td);
+        });
         batsmenBody.appendChild(tr);
     });
 
@@ -152,14 +151,13 @@ function updateUI(data) {
 
     data.bowlers.forEach(bowler => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="bowler-name">${bowler.name}</td>
-            <td>${bowler.overs}</td>
-            <td>${bowler.maidens}</td>
-            <td>${bowler.runs}</td>
-            <td class="highlight-stat">${bowler.wickets}</td>
-            <td>${bowler.econ}</td>
-        `;
+        [bowler.name, bowler.overs, bowler.maidens, bowler.runs, bowler.wickets, bowler.econ].forEach((value, index) => {
+            const td = document.createElement('td');
+            td.textContent = String(value ?? '');
+            if (index === 0) td.className = 'bowler-name';
+            if (index === 4) td.className = 'highlight-stat';
+            tr.appendChild(td);
+        });
         bowlerBody.appendChild(tr);
     });
 
