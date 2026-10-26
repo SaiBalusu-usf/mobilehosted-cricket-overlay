@@ -1,58 +1,39 @@
 const express = require('express');
 const cheerio = require('cheerio');
 const cors = require('cors');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
+const path = require('path');
 
 const app = express();
 app.use(cors());
-app.use(express.static(__dirname)); // Serve static files (index.html, style.css, etc.)
-
-// Default match ID from user request
-const DEFAULT_MATCH_ID = '5405';
-const DEFAULT_CLUB_ID = '157';
-const DEFAULT_LEAGUE = 'TCL';
-
-// Construct URL dynamically based on league
-const getScorecardUrl = (league, matchId, clubId) => `https://cricclubs.com/${league}/viewScorecard.do?matchId=${matchId}&clubId=${clubId}`;
+// Only browser assets are public; never expose source, captures, or lockfiles.
+for (const [route, file] of [['/', 'index.html'], ['/index.html', 'index.html'], ['/script.js', 'script.js'], ['/style.css', 'style.css']]) {
+    app.get(route, (_req, res) => res.sendFile(path.join(__dirname, file)));
+}
 
 app.get('/api/live-score', (req, res) => {
-    const matchId = req.query.matchId || DEFAULT_MATCH_ID;
-    const clubId = req.query.clubId || DEFAULT_CLUB_ID;
-    // Extract league from query or default
-    const league = req.query.league || DEFAULT_LEAGUE;
+    const matchId = req.query.matchId ?? '5405';
+    const clubId = req.query.clubId ?? '157';
+    const league = req.query.league ?? 'TCL';
+    if (typeof matchId !== 'string' || !/^[1-9][0-9]{0,11}$/.test(matchId) ||
+        typeof clubId !== 'string' || !/^[1-9][0-9]{0,11}$/.test(clubId) ||
+        typeof league !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(league)) {
+        return res.status(400).json({ error: 'Invalid league, matchId, or clubId' });
+    }
 
-    const url = getScorecardUrl(league, matchId, clubId);
-
-    console.log(`Fetching data from: ${url}`);
-
-    // CORS Bypass: Use 'curl' on Linux/Mac/Android (Termux) and 'curl.exe' on Windows
+    const url = new URL('https://cricclubs.com/' + league + '/viewScorecard.do');
+    url.searchParams.set('matchId', matchId);
+    url.searchParams.set('clubId', clubId);
     const curlCmd = process.platform === 'win32' ? 'curl.exe' : 'curl';
-
-    // Robust Desktop Headers to bypass restrictions
-    const headers = [
-        '-H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"',
-        '-H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"',
-        '-H "Accept-Language: en-US,en;q=0.9"',
-        '-H "Cache-Control: max-age=0"',
-        '-H "Sec-Ch-Ua: \\"Not A(Brand\\";v=\\"99\\", \\"Google Chrome\\";v=\\"121\\", \\"Chromium\\";v=\\"121\\""',
-        '-H "Sec-Ch-Ua-Mobile: ?0"',
-        '-H "Sec-Ch-Ua-Platform: \\"Windows\\""',
-        '-H "Sec-Fetch-Dest: document"',
-        '-H "Sec-Fetch-Mode: navigate"',
-        '-H "Sec-Fetch-Site: none"',
-        '-H "Sec-Fetch-User: ?1"',
-        '-H "Upgrade-Insecure-Requests: 1"',
-        // Referer helps
-        `-H "Referer: https://cricclubs.com/${league}"`
-    ].join(' ');
-
-    const curlCommand = `${curlCmd} -L --max-time 15 --retry 3 ${headers} "${url}"`;
-
-    exec(curlCommand, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+    // No shell and no redirects: user input cannot become a command or a new host.
+    const args = ['--fail', '--silent', '--show-error', '--proto', '=https',
+        '--max-time', '15', '--max-filesize', '10485760',
+        '-H', 'User-Agent: Mozilla/5.0', '-H', 'Accept: text/html',
+        '-H', 'Accept-Language: en-US,en;q=0.9', '--url', url.href];
+    execFile(curlCmd, args, { maxBuffer: 10 * 1024 * 1024, timeout: 20000, windowsHide: true }, (error, stdout) => {
         if (error) {
-            console.error(`exec error: ${error}`);
-            console.error(`stderr: ${stderr}`);
-            return res.status(500).json({ error: 'Failed to fetch data via curl', details: stderr });
+            console.error('Scorecard request failed');
+            return res.status(502).json({ error: 'Failed to fetch scorecard' });
         }
 
         try {
